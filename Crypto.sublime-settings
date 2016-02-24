@@ -5,4 +5,7 @@
 
   // The Cipher Type to use, e.g. "-des3" or "-aes256"
   "cipher": "-aes128"
+
+  // Whether to hide (true) or not (false) the password as it is written:
+  "hide_password": true
 }

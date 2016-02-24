@@ -25,17 +25,43 @@ ST3 = int(sublime.version()) >= 3000
 # Capture user input (password) and send to the CryptoCommand
 #
 class AesCryptCommand(sublime_plugin.WindowCommand):
+  message=""
+  pwd=""
+  hide_char=chr(215)
+  not_cancelled=False
   def run(self, enc):
     self.enc = enc
-    message = "Create a Password:" if enc else "Enter Password:"
-    self.window.show_input_panel(message, "", self.on_done, None, None)
+    self.message = "Create a Password:" if enc else "Enter Password:"
+    s = sublime.load_settings("Crypto.sublime-settings")
+    hide_password = s.get('hide_password')
+    if hide_password:
+      self.window.show_input_panel(self.message, "", self.on_done, self.getpwd, self.on_cancel)
+    else:
+      self.window.show_input_panel(self.message, "", self.on_done, None, None)
     pass
   def on_done(self, password):
     try:
-      if self.window.active_view():
-        self.window.active_view().run_command("crypto", {"enc": self.enc, "password": password})
+      if self.window.active_view() and len(self.pwd)>0:
+        self.window.active_view().run_command("crypto", {"enc": self.enc, "password": self.pwd})
     except ValueError:
         pass
+  def getpwd(self, password):
+    pwd=self.pwd
+    if (len(pwd) == len(password)):
+      return
+    chg = password.replace(self.hide_char, "")
+    if  len(password) < len(pwd):
+        pwd = pwd[:len(password)]
+    else:
+        pwd = pwd + chg
+    self.not_cancelled=True
+    self.pwd=pwd
+    self.window.run_command("hide_panel", {"cancel": True})
+  def on_cancel(self):
+    if self.not_cancelled:
+      stars = self.hide_char * len(self.pwd)
+      self.not_cancelled=False
+      self.window.show_input_panel(self.message, stars, self.on_done, self.getpwd, self.on_cancel)
 
 
 #
