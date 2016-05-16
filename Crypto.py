@@ -29,17 +29,19 @@ class AesCryptCommand(sublime_plugin.WindowCommand):
   pwd=""
   hide_char=chr(215)
   not_cancelled=False
+  hide_password=False
   def run(self, enc):
     self.enc = enc
     self.message = "Create a Password:" if enc else "Enter Password:"
-    s = sublime.load_settings("Crypto.sublime-settings")
-    hide_password = s.get('hide_password')
-    if hide_password:
+    self.hide_password = sublime.load_settings("Crypto.sublime-settings").get('hide_password')
+    if self.hide_password:
       self.window.show_input_panel(self.message, "", self.on_done, self.getpwd, self.on_cancel)
     else:
       self.window.show_input_panel(self.message, "", self.on_done, None, None)
     pass
   def on_done(self, password):
+    if not self.hide_password:
+      self.pwd = password
     try:
       if self.window.active_view() and len(self.pwd)>0:
         self.window.active_view().run_command("crypto", {"enc": self.enc, "password": self.pwd})
